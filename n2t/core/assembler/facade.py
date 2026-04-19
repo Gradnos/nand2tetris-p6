@@ -111,7 +111,11 @@ class Assembler:
 
     def _translate_c_instruction(self, line: str) -> str:
         dest, comp, jump = self._parse_c(line)
-        return "111" + self._comp_bits(comp) + self._dest_bits(dest) + self._jump_bits(jump)
+        result = "111"
+        result += self._comp_bits(comp)
+        result += self._dest_bits(dest)
+        result += self._jump_bits(jump)
+        return result
 
     def _parse_c(self, line: str) -> tuple[str | None, str, str | None]:
         dest: str | None = None
