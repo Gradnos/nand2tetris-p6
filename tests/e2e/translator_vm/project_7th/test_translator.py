@@ -29,7 +29,6 @@ def run_for_all_os(
     run_vm_translator_test(cpu_emulator, projects_directory_path, tst_file, vm_file)
 
 
-@pytest.mark.skip
 @pytest.mark.parametrize("test_file", _TEST_PROGRAMS)
 def test_run_emulator_bat(
     test_file: tuple[str, str],
@@ -39,7 +38,6 @@ def test_run_emulator_bat(
     run_for_all_os(test_file, cpu_emulator_bat, projects_directory)
 
 
-@pytest.mark.skip
 @pytest.mark.parametrize("test_file", _TEST_PROGRAMS)
 def test_run_emulator_sh(
     test_file: tuple[str, str],
