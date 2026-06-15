@@ -10,7 +10,6 @@ from n2t.runner.cli import run_compiler
 _TEST_PROGRAMS = ["ArrayTest"]
 
 
-@pytest.mark.skip
 @pytest.mark.parametrize("test_directory", _TEST_PROGRAMS)
 def test_should_analyze_on_files(test_directory: str, jacks_directory: Path) -> None:
     projects_directory_path = os.path.join(jacks_directory, test_directory)
@@ -37,7 +36,6 @@ def test_should_analyze_on_files(test_directory: str, jacks_directory: Path) -> 
 _TEST_PROGRAMS = ["ArrayTest", "ExpressionLessSquare", "Square"]
 
 
-@pytest.mark.skip
 @pytest.mark.parametrize("test_directory", _TEST_PROGRAMS)
 def test_should_analyze_on_directory(
     test_directory: str, jacks_directory: Path

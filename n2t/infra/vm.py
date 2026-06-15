@@ -3,19 +3,18 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass, field
 
-
 SEGMENT_POINTERS = {
-    "local":    "LCL",
+    "local": "LCL",
     "argument": "ARG",
-    "this":     "THIS",
-    "that":     "THAT",
+    "this": "THIS",
+    "that": "THAT",
 }
 
 BINARY_OPS = {
     "add": "M=D+M",
     "sub": "M=M-D",
     "and": "M=D&M",
-    "or":  "M=D|M",
+    "or": "M=D|M",
 }
 
 UNARY_OPS = {
@@ -145,7 +144,8 @@ class VmProgram:
     def _binary(self, op: str) -> None:
         # SP--, then operate at SP-1 in place. Top operand goes into D first.
         self._asm += [
-            "@SP", "AM=M-1",
+            "@SP",
+            "AM=M-1",
             "D=M",
             "A=A-1",
             op,
@@ -158,20 +158,23 @@ class VmProgram:
         n = self._cmp_id
         self._cmp_id += 1
         true_lbl = f"CMP_TRUE_{n}"
-        end_lbl  = f"CMP_END_{n}"
+        end_lbl = f"CMP_END_{n}"
         self._asm += [
-            "@SP", "AM=M-1",
+            "@SP",
+            "AM=M-1",
             "D=M",
             "A=A-1",
             "D=M-D",
             f"@{true_lbl}",
             f"D;{jump}",
-            "@SP", "A=M-1",
+            "@SP",
+            "A=M-1",
             "M=0",
             f"@{end_lbl}",
             "0;JMP",
             f"({true_lbl})",
-            "@SP", "A=M-1",
+            "@SP",
+            "A=M-1",
             "M=-1",
             f"({end_lbl})",
         ]
@@ -183,8 +186,10 @@ class VmProgram:
             self._asm += [f"@{i}", "D=A"]
         elif segment in SEGMENT_POINTERS:
             self._asm += [
-                f"@{i}", "D=A",
-                f"@{SEGMENT_POINTERS[segment]}", "A=M+D",
+                f"@{i}",
+                "D=A",
+                f"@{SEGMENT_POINTERS[segment]}",
+                "A=M+D",
                 "D=M",
             ]
         elif segment == "temp":
@@ -197,8 +202,11 @@ class VmProgram:
             raise ValueError(f"Unknown segment: {segment}")
 
         self._asm += [
-            "@SP", "A=M", "M=D",
-            "@SP", "M=M+1",
+            "@SP",
+            "A=M",
+            "M=D",
+            "@SP",
+            "M=M+1",
         ]
 
     def _pop(self, segment: str, i: int) -> None:
@@ -210,12 +218,17 @@ class VmProgram:
             # Stash target address in R13 so we don't need to keep recomputing
             # it after clobbering A to read the stack top.
             self._asm += [
-                f"@{i}", "D=A",
-                f"@{SEGMENT_POINTERS[segment]}", "D=M+D",
-                "@R13", "M=D",
-                "@SP", "AM=M-1",
+                f"@{i}",
+                "D=A",
+                f"@{SEGMENT_POINTERS[segment]}",
+                "D=M+D",
+                "@R13",
+                "M=D",
+                "@SP",
+                "AM=M-1",
                 "D=M",
-                "@R13", "A=M",
+                "@R13",
+                "A=M",
                 "M=D",
             ]
             return
@@ -230,7 +243,8 @@ class VmProgram:
             raise ValueError(f"Unknown segment: {segment}")
 
         self._asm += [
-            "@SP", "AM=M-1",
+            "@SP",
+            "AM=M-1",
             "D=M",
             dest,
             "M=D",
@@ -245,7 +259,8 @@ class VmProgram:
 
     def _if_goto(self, label: str) -> None:
         self._asm += [
-            "@SP", "AM=M-1",
+            "@SP",
+            "AM=M-1",
             "D=M",
             f"@{self._scoped(label)}",
             "D;JNE",
@@ -259,8 +274,11 @@ class VmProgram:
         self._asm.append(f"({name})")
         for _ in range(n_locals):
             self._asm += [
-                "@SP", "A=M", "M=0",
-                "@SP", "M=M+1",
+                "@SP",
+                "A=M",
+                "M=0",
+                "@SP",
+                "M=M+1",
             ]
 
     def _call(self, name: str, n_args: int) -> None:
@@ -270,25 +288,39 @@ class VmProgram:
 
         # push return address
         self._asm += [
-            f"@{ret_lbl}", "D=A",
-            "@SP", "A=M", "M=D",
-            "@SP", "M=M+1",
+            f"@{ret_lbl}",
+            "D=A",
+            "@SP",
+            "A=M",
+            "M=D",
+            "@SP",
+            "M=M+1",
         ]
         # save caller's frame
         for ptr in ("LCL", "ARG", "THIS", "THAT"):
             self._asm += [
-                f"@{ptr}", "D=M",
-                "@SP", "A=M", "M=D",
-                "@SP", "M=M+1",
+                f"@{ptr}",
+                "D=M",
+                "@SP",
+                "A=M",
+                "M=D",
+                "@SP",
+                "M=M+1",
             ]
         # ARG = SP - n_args - 5; LCL = SP
         self._asm += [
-            "@SP", "D=M",
-            f"@{n_args + 5}", "D=D-A",
-            "@ARG", "M=D",
-            "@SP", "D=M",
-            "@LCL", "M=D",
-            f"@{name}", "0;JMP",
+            "@SP",
+            "D=M",
+            f"@{n_args + 5}",
+            "D=D-A",
+            "@ARG",
+            "M=D",
+            "@SP",
+            "D=M",
+            "@LCL",
+            "M=D",
+            f"@{name}",
+            "0;JMP",
             f"({ret_lbl})",
         ]
 
@@ -296,36 +328,62 @@ class VmProgram:
         # endFrame in R13, retAddr in R14. R13-R15 are the spec's scratch
         # registers and are free to clobber here.
         self._asm += [
-            "@LCL", "D=M",
-            "@R13", "M=D",
-
+            "@LCL",
+            "D=M",
+            "@R13",
+            "M=D",
             # Stash retAddr *before* writing *ARG -- when n_args==0 the two
             # locations alias and the next write would otherwise destroy it.
-            "@5", "A=D-A", "D=M",
-            "@R14", "M=D",
-
+            "@5",
+            "A=D-A",
+            "D=M",
+            "@R14",
+            "M=D",
             # *ARG = pop()
-            "@SP", "AM=M-1", "D=M",
-            "@ARG", "A=M", "M=D",
-
+            "@SP",
+            "AM=M-1",
+            "D=M",
+            "@ARG",
+            "A=M",
+            "M=D",
             # SP = ARG + 1
-            "@ARG", "D=M+1",
-            "@SP", "M=D",
-
+            "@ARG",
+            "D=M+1",
+            "@SP",
+            "M=D",
             # restore caller's THAT, THIS, ARG, LCL by walking back from endFrame
-            "@R13", "AM=M-1", "D=M", "@THAT", "M=D",
-            "@R13", "AM=M-1", "D=M", "@THIS", "M=D",
-            "@R13", "AM=M-1", "D=M", "@ARG",  "M=D",
-            "@R13", "AM=M-1", "D=M", "@LCL",  "M=D",
-
-            "@R14", "A=M", "0;JMP",
+            "@R13",
+            "AM=M-1",
+            "D=M",
+            "@THAT",
+            "M=D",
+            "@R13",
+            "AM=M-1",
+            "D=M",
+            "@THIS",
+            "M=D",
+            "@R13",
+            "AM=M-1",
+            "D=M",
+            "@ARG",
+            "M=D",
+            "@R13",
+            "AM=M-1",
+            "D=M",
+            "@LCL",
+            "M=D",
+            "@R14",
+            "A=M",
+            "0;JMP",
         ]
 
     def _write_bootstrap(self) -> None:
         self._asm += [
             "// bootstrap",
-            "@256", "D=A",
-            "@SP", "M=D",
+            "@256",
+            "D=A",
+            "@SP",
+            "M=D",
         ]
         self._current_function = ""
         self._call("Sys.init", 0)
